@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+# backend 
+  web:
+    build: .
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/usr/src/app/
+    ports:
+      - 1337:8000
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-y8w19n!0v7o5^0y+=+yq-0!xh85*8i8%2mc=p1trj!u)+q^77u
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+    depends_on:
+      - redis
+  # it is used for celecry
+  redis:
+    image: redis:alpine
+  celery:
+    build: .
+    command: celery -A http_monitor worker -l info
+    volumes:
+      - .:/usr/src/app/
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-y8w19n!0v7o5^0y+=+yq-0!xh85*8i8%2mc=p1trj!u)+q^77u
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+    depends_on:
+      - redis
+  celery-beat:
+    build: .
+    command: celery -A http_monitor beat -l info
+    volumes:
+      - .:/usr/src/app/
+    environment:
+      - DEBUG=1
+      - SECRET_KEY=django-insecure-y8w19n!0v7o5^0y+=+yq-0!xh85*8i8%2mc=p1trj!u)+q^77u
+      - DJANGO_ALLOWED_HOSTS=localhost 127.0.0.1 [::1]
+    depends_on:
+      - redis
